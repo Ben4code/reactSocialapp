@@ -4,13 +4,6 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 
 //initialize Cloud firestore
-    //const admin = require('firebase-admin');
-    //const functions = require('firebase-functions');
-    // admin.initializeApp(functions.config().firebase);
-    // const db = admin.firestore();
-
-
-//initialize Cloud firestore
 const firebase = require('firebase');
 const config = {
     apiKey: "AIzaSyArWGXKK40z9Ralgsqo4vqklYTCX08QW-o",
@@ -20,17 +13,14 @@ const config = {
     storageBucket: "reactsocial-5e291.appspot.com",
     messagingSenderId: "297521307129"
 };
-
-//initialize firestore
 firebase.initializeApp(config);
-const db = admin.firestore();
+const db = firebase.firestore();
 
-
-//Express Imports
+//Initialize Express
 const express = require('express');
 const app = express();
 
-
+//App Routes
 app.get('/screams', (req, res) => {
     db.collection('screams').get().then(data => {
         let screams = [];
@@ -67,6 +57,9 @@ app.post('/screams', (req, res) => {
 
 
 app.post('/signup', (req, res)=>{
+    let token;
+    let userId;
+
     const newUser = {
         email: req.body.email,
         password: req.body.password,
@@ -75,7 +68,7 @@ app.post('/signup', (req, res)=>{
     }
     
     //Validate data
-    db.collection('users').doc(`/users/${newUser.handle}`).get()
+    db.doc(`/users/${newUser.handle}`).get()
     .then(doc => {
         if(doc.exists){
             return res.status(400).json({handle: "This handle already exists."})
@@ -84,14 +77,28 @@ app.post('/signup', (req, res)=>{
         }
     })
     .then(data => {
+        userId = data.user.uid;
+        const userCredendials = {
+            email: newUser.email,
+            handle: newUser.handle,
+            createdAt: new Date().toISOString(),
+            userId: userId
+        }
+        db.doc(`/users/${newUser.handle}`).set(userCredendials)
         return data.user.getIdToken();
     })
     .then(token => {
+        token = token;
         return res.status(201).json({token})
     })
     .catch(err => {
         console.error(err);
-        return res.status(500).json({ error: err.code})
+        if(err.code === 'auth/email-already-in-use'){
+            return res.status(400).json({email: 'Email is already in use'})
+        } else{
+            return res.status(500).json({ error: err.code})
+        }
+        
     })
 })
 

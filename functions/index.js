@@ -53,10 +53,23 @@ app.post('/screams', (req, res) => {
             res.status(500).json({ err: 'Something went wrong' })
             console.log(err);
         })
-})
+});
 
+const isEmpty = (field) =>{
+    if(field.trim() === '') return true;
+    else return false;
+}
+
+const isEmail = (field) =>{
+    const emailRegEx = 
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if(field.match(emailRegEx)) return true;
+    else return false;
+}
 
 app.post('/signup', (req, res)=>{
+
+
     let token;
     let userId;
 
@@ -68,6 +81,24 @@ app.post('/signup', (req, res)=>{
     }
     
     //Validate data
+    let errors = {};
+
+    //Email
+    if(isEmpty(newUser.email)){
+        errors.email = "Email field can not be empty";
+    }else if(!isEmail(newUser.email)){
+        errors.email = "Please enter a valid email";
+    }
+
+    //Password
+    if(isEmpty(newUser.password)) errors.password = "Password field can not be empty";
+    if(newUser.password !== newUser.confirmPassword) errors.confirmPassword = "Password fields must match";
+    
+    //Handle
+    if(isEmpty(newUser.handle)) errors.handle = "Handle field can not be empty";
+    if(Object.keys(errors).length > 0) return res.status(400).json(errors);
+    
+
     db.doc(`/users/${newUser.handle}`).get()
     .then(doc => {
         if(doc.exists){
@@ -97,10 +128,36 @@ app.post('/signup', (req, res)=>{
             return res.status(400).json({email: 'Email is already in use'})
         } else{
             return res.status(500).json({ error: err.code})
-        }
-        
+        }  
     })
 })
 
+app.post('/login', (req, res) =>{
+    newUser = {
+        email: req.body.email,
+        password: req.body.password
+    }
 
+    //Validation
+    let errors = {};
+    if(isEmpty(newUser.email)) errors.email = "Email field is required.";
+    if(isEmpty(newUser.password)) errors.password = "Password field is required.";
+    if(Object.keys(errors).length > 0 ) return res.status(400).json(errors);
+
+    firebase.auth().signInWithEmailAndPassword(newUser.email, newUser.password)
+    .then(data => {
+        return data.user.getIdToken();
+    })
+    .then(token =>{
+        res.json(token)
+    })
+    .catch(err => {
+        console.error(err);
+        if(err.code === 'auth/wrong-password'){
+            return res.status(403).json({authFail: "Email or password is incorrect, try again."});    
+        }else{
+            return res.status(500).json({error: err.code});
+        }
+    })
+})
 exports.api = functions.https.onRequest(app);

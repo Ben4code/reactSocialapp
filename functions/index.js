@@ -8,7 +8,7 @@ firebase.initializeApp(config);
 
 //Import Scream Handlers
 const { getAllScreams, postOneScreams } = require('./handlers/screams');
-const { signup, login} = require('./handlers/users');
+const { signup, login, uploadImage} = require('./handlers/users');
 
 //Import FBAuth
 const FBAuth = require('./util/FBAuth');
@@ -22,7 +22,8 @@ app.get('/screams', getAllScreams);
 app.post('/screams', FBAuth, postOneScreams);
 
 //User Routes
-app.post('/signup', signup)
+app.post('/signup', signup);
 app.post('/login', login);
+app.post('/user/image', FBAuth, uploadImage);
 
 exports.api = functions.https.onRequest(app);

@@ -20,27 +20,34 @@ let db = {
             commentCount: 23
         }
     ],
-    userDetails: {
-        //Redux Data
-        credentials:{
-            userId: 'sdsdsdnskdjskdjs',
-            email: 'user@email.com',
-            handle: 'user',
-            createdAt: '2019-03-13',
-            imageUrl: 'image/sdsd/sdsd',
-            bio: 'Hello world',
-            website: 'https://user.com',
-            location: 'London UK'
-        },
-        likes: [
-            {
-                userHandle: 'user',
-                screamId: 'ssdsdmdssksdsd'
-            },
-            {
-                userHandle: 'user2',
-                screamId: 'ssdsdmdssksasasasdsd'
-            }
-        ]
+    comments: {
+        userHandle: 'user',
+        body: 'THis is a sample scream',
+        createdAt: '2019-12-12',
+        likeCount: 5,
+        commentCount: 3
     }
+}
+const userDetails = {
+    //Redux Data
+    credentials: {
+        userId: 'sdsdsdnskdjskdjs',
+        email: 'user@email.com',
+        handle: 'user',
+        createdAt: '2019-03-13',
+        imageUrl: 'image/sdsd/sdsd',
+        bio: 'Hello world',
+        website: 'https://user.com',
+        location: 'London UK'
+    },
+    likes: [
+        {
+            userHandle: 'user',
+            screamId: 'ssdsdmdssksdsd'
+        },
+        {
+            userHandle: 'user2',
+            screamId: 'ssdsdmdssksasasasdsd'
+        }
+    ]
 }

@@ -1,0 +1,55 @@
+
+--------------- Firebasse sheet ------------------
+
+const db = firebase.firestore();
+
+//Get all 
+db.collection('screams').get().then(data => {
+    let screams = [];
+    data.forEach(doc => {
+        screams.push({
+            screamId: doc.id,
+            body: doc.data().body,
+            userHandle: doc.data().userHandle,
+            createdAt: doc.data().createdAt
+        });
+    })
+    return res.json(screams);
+})
+    .catch(error => {
+        console.log(error);
+        res.status(500).json({ error: error.code });
+    })
+
+
+//Post One
+db.collection('screams').add(newScream)
+    .then(data => {
+        res.json({ msg: `document ${data.id} created successfully` })
+    })
+    .catch(err => {
+        res.status(500).json({ err: 'Something went wrong' })
+        console.log(err);
+    })
+
+
+//Get query
+let userData = {};
+db.doc(`/users/${req.user.handle}`).get()
+    .then(doc => {
+        if (doc.exists) {
+            userData.credentials = doc.data();
+            return db.collection('likes').where('userHandle', '==', req.user.handle).get()
+        }
+    })
+    .then(data => {
+        userData.likes = [];
+        data.forEach(doc => {
+            userData.likes.push(doc.data())
+        })
+        return res.json(userData);
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({ error: err.code });
+    })

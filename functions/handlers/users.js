@@ -1,9 +1,10 @@
 //initialize Cloud firestore
 const firebase = require('firebase');
 const {admin, db} = require('../util/admin');
-const { validateSignUpData, validateLoginData } = require('../util/validators');
+const { validateSignUpData, validateLoginData, reduceUserDetails } = require('../util/validators');
 const config = require('../util/config');
 
+//Signup
 exports.signup = (req, res)=>{
     let token;
     let userId;
@@ -55,6 +56,7 @@ exports.signup = (req, res)=>{
     })
 }
 
+//Login
 exports.login = (req, res) =>{
     newUser = {
         email: req.body.email,
@@ -82,6 +84,45 @@ exports.login = (req, res) =>{
     })
 };
 
+
+//Add userdata
+exports.addUserDetails = (req, res)=> {
+    let userDetails = reduceUserDetails(req.body);
+
+    db.doc(`/users/${req.user.handle}`).update(userDetails)
+    .then(()=>{
+        return res.json({message: 'Details added successfully'});
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: err.code});
+    })
+}
+
+//get user credentials
+exports.getAuthUser = (req, res) =>{
+    let userData = {};
+    db.doc(`/users/${req.user.handle}`).get()
+    .then(doc => {
+        if(doc.exists){
+           userData.credentials = doc.data();
+           return db.collection('likes').where('userHandle', '==', req.user.handle).get()
+        }
+    })
+    .then(data => {
+        userData.likes = [];
+        data.forEach(doc => {
+           userData.likes.push(doc.data()) 
+        })
+        return res.json(userData);
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: err.code});
+    })
+}
+
+//Upload profile pic
 exports.uploadImage = (req, res) => {
     const path = require('path');
     const Busboy = require('busboy');
